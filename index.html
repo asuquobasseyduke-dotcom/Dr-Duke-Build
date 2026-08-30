@@ -34,6 +34,7 @@
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      margin-bottom: 16px;
     }
 
     /* Tab Navigation */
@@ -110,8 +111,58 @@
 
     /* 3D Viewer */
     model-viewer { width: 100%; height: 320px; background-color: #0d1117; border-radius: 8px; }
-    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
-    .gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); }
+
+    /* Floor Plans Grid & Modal */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .plan-card {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+    .plan-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .plan-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 6px;
+      color: var(--text);
+    }
+
+    /* Modal Viewer */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .modal-img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    .close-btn {
+      position: absolute;
+      top: 15px; right: 20px;
+      color: #fff; font-size: 30px; font-weight: bold;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -126,7 +177,7 @@
 
   <!-- TAB 1: BUDGET & PACKAGES -->
   <div id="tab-budget" class="tab-content">
-    <div class="card" style="margin-bottom: 16px;">
+    <div class="card">
       <div class="stats-container">
         <div class="stat-box">
           <div class="stat-val">€5,700</div>
@@ -198,17 +249,42 @@
     </div>
   </div>
 
-  <!-- TAB 3: FLOOR PLANS & DOSSIER -->
+  <!-- TAB 3: INTERACTIVE FLOOR PLANS -->
   <div id="tab-plans" class="tab-content" style="display: none;">
     <div class="card">
-      <h3>Architectural Plans & Renders</h3>
-      <div class="gallery">
-        <img src="assets/ground_floor.png" alt="Ground Floor Plan" onclick="window.open(this.src)">
-        <img src="assets/first_floor.png" alt="First Floor Plan" onclick="window.open(this.src)">
-        <img src="assets/garage_pod.png" alt="Garage Pod Layout" onclick="window.open(this.src)">
-        <img src="assets/site_map.png" alt="Site Map" onclick="window.open(this.src)">
+      <h3>Architectural Plans & Dossier Renders</h3>
+      <div class="plan-grid" id="plan-grid">
+        <div class="plan-card">
+          <img src="assets/ground_floor.png" alt="Ground Floor" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Ground+Floor+Plan'" onclick="openModal(this.src, 'Ground Floor Plan')">
+          <div class="plan-title">Ground Floor</div>
+        </div>
+        <div class="plan-card">
+          <img src="assets/first_floor.png" alt="First Floor" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=First+Floor+Plan'" onclick="openModal(this.src, 'First Floor Plan')">
+          <div class="plan-title">First Floor</div>
+        </div>
+        <div class="plan-card">
+          <img src="assets/basement_plan.png" alt="Basement Level" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Basement+Level'" onclick="openModal(this.src, 'Basement Level')">
+          <div class="plan-title">Basement</div>
+        </div>
+        <div class="plan-card">
+          <img src="assets/garage_pod.png" alt="Garage Pod" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Garage+Pod+Layout'" onclick="openModal(this.src, 'Garage Pod Layout')">
+          <div class="plan-title">Garage Pod</div>
+        </div>
+        <div class="plan-card">
+          <img src="assets/site_map.png" alt="Site Boundary Map" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=OSI+Site+Map'" onclick="openModal(this.src, 'OSI Site Map')">
+          <div class="plan-title">Site Map</div>
+        </div>
       </div>
+
+      <button class="btn-add" onclick="addNewPlan()">➕ Link Custom Image/Drawing URL</button>
     </div>
+  </div>
+
+  <!-- FULL SCREEN IMAGE MODAL -->
+  <div id="imgModal" class="modal">
+    <span class="close-btn" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle" style="color: #fff; margin-top: 10px;">Plan View</h3>
+    <img class="modal-img" id="modalImage" src="" alt="Full Plan View">
   </div>
 
   <script>
@@ -260,6 +336,33 @@
 
       tbody.appendChild(newRow);
       updatePackageNumbers();
+    }
+
+    /* Modal Functions */
+    function openModal(imgSrc, title) {
+      document.getElementById('modalImage').src = imgSrc;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('imgModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('imgModal').style.display = 'none';
+    }
+
+    function addNewPlan() {
+      const title = prompt("Enter Drawing / Plan Name:", "New Drawing");
+      if (!title) return;
+      const url = prompt("Enter Image URL or Path (e.g. assets/my_drawing.png):");
+      if (!url) return;
+
+      const grid = document.getElementById("plan-grid");
+      const card = document.createElement("div");
+      card.className = "plan-card";
+      card.innerHTML = `
+        <img src="${url}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=${encodeURIComponent(title)}'" onclick="openModal(this.src, '${title}')">
+        <div class="plan-title">${title}</div>
+      `;
+      grid.appendChild(card);
     }
   </script>
 </body>
