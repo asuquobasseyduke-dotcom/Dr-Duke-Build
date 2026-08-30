@@ -119,16 +119,6 @@
     }
     .btn-add:hover { background: var(--accent-hover); }
 
-    #canvas3d {
-      width: 100%;
-      height: 350px;
-      background-color: #0d1117;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      display: block;
-      touch-action: none;
-    }
-
     /* Floor Plans Grid & Upload UI */
     .plan-grid {
       display: grid;
@@ -206,8 +196,8 @@
   
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow (18 Pkgs)</button>
-    <button class="tab-btn" onclick="showTab('3d')">🧊 3D Structural Grid</button>
-    <button class="tab-btn" onclick="showTab('plans')">📐 Floor Plans</button>
+    <button class="tab-btn" onclick="showTab('3d')">📐 Interactive 2D/3D Planner</button>
+    <button class="tab-btn" onclick="showTab('plans')">🖼️ Floor Plans</button>
   </div>
 
   <!-- TAB 1: BUDGET & PACKAGES -->
@@ -270,13 +260,17 @@
     </div>
   </div>
 
-  <!-- TAB 2: INTERACTIVE 3D STRUCTURAL CANVAS -->
+  <!-- TAB 2: INTERACTIVE 2D/3D FLOOR PLANNER (OPTION 1) -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
-      <h3>3D Structure & Structural Grid View</h3>
-      <p style="font-size: 0.8rem; color: var(--text-sub);">Drag/Touch to rotate the RC Column Grid & Basement Structure.</p>
+      <h3>Interactive 2D/3D Floor Planner Engine</h3>
+      <p style="font-size: 0.8rem; color: var(--text-sub);">Sketch walls, place structural elements, and view real-time 3D models below.</p>
       
-      <canvas id="canvas3d"></canvas>
+      <iframe 
+        src="https://floorplanner.com/demo" 
+        style="width: 100%; height: 550px; border: 1px solid var(--border); border-radius: 8px; background: #fff;"
+        allowfullscreen>
+      </iframe>
     </div>
   </div>
 
@@ -363,7 +357,6 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).style.display = 'block';
       event.target.classList.add('active');
-      if (tabName === '3d') init3DCanvas();
     }
 
     function calculateTotals() {
@@ -486,95 +479,6 @@
 
     function closeModal() {
       document.getElementById('imgModal').style.display = 'none';
-    }
-
-    /* Lightweight Interactive 3D Canvas Engine */
-    let canvasInited = false;
-    function init3DCanvas() {
-      if (canvasInited) return;
-      canvasInited = true;
-      
-      const canvas = document.getElementById('canvas3d');
-      const ctx = canvas.getContext('2d');
-      
-      function resize() {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-      }
-      resize();
-      window.addEventListener('resize', resize);
-
-      let rotX = 0.4, rotY = 0.6;
-      let isDragging = false, lastX = 0, lastY = 0;
-
-      canvas.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
-      });
-      window.addEventListener('pointermove', (e) => {
-        if (!isDragging) return;
-        rotY += (e.clientX - lastX) * 0.01;
-        rotX += (e.clientY - lastY) * 0.01;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        draw();
-      });
-      window.addEventListener('pointerup', () => isDragging = false);
-
-      const nodes = [
-        {x:-1, y:-1, z:-1}, {x:1, y:-1, z:-1}, {x:1, y:-1, z:1}, {x:-1, y:-1, z:1},
-        {x:-1, y:-0.3, z:-1}, {x:1, y:-0.3, z:-1}, {x:1, y:-0.3, z:1}, {x:-1, y:-0.3, z:1},
-        {x:-1, y:0.4, z:-1}, {x:1, y:0.4, z:-1}, {x:1, y:0.4, z:1}, {x:-1, y:0.4, z:1},
-        {x:0, y:1.1, z:0}
-      ];
-
-      const edges = [
-        [0,1], [1,2], [2,3], [3,0],
-        [0,4], [1,5], [2,6], [3,7],
-        [4,5], [5,6], [6,7], [7,4],
-        [4,8], [5,9], [6,10], [7,11],
-        [8,9], [9,10], [10,11], [11,8],
-        [8,12], [9,12], [10,12], [11,12]
-      ];
-
-      function project(p) {
-        let x1 = p.x * Math.cos(rotY) + p.z * Math.sin(rotY);
-        let z1 = -p.x * Math.sin(rotY) + p.z * Math.cos(rotY);
-        let y2 = p.y * Math.cos(rotX) - z1 * Math.sin(rotX);
-        let z2 = p.y * Math.sin(rotX) + z1 * Math.cos(rotX);
-        
-        let scale = 120 / (z2 + 3.5);
-        return {
-          x: canvas.width / 2 + x1 * scale,
-          y: canvas.height / 2 - y2 * scale
-        };
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.strokeStyle = '#2563eb';
-        ctx.lineWidth = 2;
-        edges.forEach(e => {
-          let p1 = project(nodes[e[0]]);
-          let p2 = project(nodes[e[1]]);
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.stroke();
-        });
-
-        nodes.forEach((n, idx) => {
-          let p = project(n);
-          ctx.fillStyle = idx >= 4 && idx <= 11 ? '#10b981' : '#60a5fa';
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
-
-      draw();
     }
   </script>
 </body>
