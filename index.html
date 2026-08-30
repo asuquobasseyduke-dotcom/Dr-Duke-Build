@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dr Duke Residential</title>
-  <!-- Google Model Viewer for 3D Models -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
     :root {
       --bg: #121826;
@@ -109,13 +107,15 @@
     }
     .btn-add:hover { background: var(--accent-hover); }
 
-    /* 3D Viewer Container */
-    model-viewer {
+    /* Interactive 3D Canvas Box */
+    #canvas3d {
       width: 100%;
-      height: 380px;
+      height: 350px;
       background-color: #0d1117;
       border-radius: 8px;
       border: 1px solid var(--border);
+      display: block;
+      touch-action: none;
     }
 
     /* Floor Plans Grid & Modal */
@@ -177,7 +177,7 @@
   
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow (18 Pkgs)</button>
-    <button class="tab-btn" onclick="showTab('3d')">🧊 3D Model</button>
+    <button class="tab-btn" onclick="showTab('3d')">🧊 3D Structural Grid</button>
     <button class="tab-btn" onclick="showTab('plans')">📐 Floor Plans</button>
   </div>
 
@@ -240,23 +240,13 @@
     </div>
   </div>
 
-  <!-- TAB 2: INTERACTIVE 3D MODEL VIEWER -->
+  <!-- TAB 2: INTERACTIVE 3D STRUCTURAL CANVAS -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
       <h3>3D Structure & Structural Grid View</h3>
-      <p style="font-size: 0.8rem; color: var(--text-sub);">Spin, drag, or pinch to inspect structural geometry.</p>
+      <p style="font-size: 0.8rem; color: var(--text-sub);">Drag/Touch to rotate the RC Column Grid & Basement Structure.</p>
       
-      <model-viewer 
-        id="mainViewer"
-        src="house_model.glb"
-        alt="3D Building Structure" 
-        auto-rotate 
-        camera-controls 
-        shadow-intensity="1"
-        onerror="this.src='https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb'">
-      </model-viewer>
-
-      <button class="btn-add" onclick="update3DModelUrl()">➕ Load Custom 3D Model (.glb / .gltf) URL</button>
+      <canvas id="canvas3d"></canvas>
     </div>
   </div>
 
@@ -266,23 +256,23 @@
       <h3>Architectural Plans & Dossier Renders</h3>
       <div class="plan-grid" id="plan-grid">
         <div class="plan-card">
-          <img src="assets/ground_floor.png" alt="Ground Floor" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Ground+Floor+Plan'" onclick="openModal(this.src, 'Ground Floor Plan')">
+          <img src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=Ground+Floor+Plan" alt="Ground Floor" onclick="openModal(this.src, 'Ground Floor Plan')">
           <div class="plan-title">Ground Floor</div>
         </div>
         <div class="plan-card">
-          <img src="assets/first_floor.png" alt="First Floor" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=First+Floor+Plan'" onclick="openModal(this.src, 'First Floor Plan')">
+          <img src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=First+Floor+Plan" alt="First Floor" onclick="openModal(this.src, 'First Floor Plan')">
           <div class="plan-title">First Floor</div>
         </div>
         <div class="plan-card">
-          <img src="assets/basement_plan.png" alt="Basement Level" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Basement+Level'" onclick="openModal(this.src, 'Basement Level')">
+          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=Basement+Level" alt="Basement Level" onclick="openModal(this.src, 'Basement Level')">
           <div class="plan-title">Basement</div>
         </div>
         <div class="plan-card">
-          <img src="assets/garage_pod.png" alt="Garage Pod" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=Garage+Pod+Layout'" onclick="openModal(this.src, 'Garage Pod Layout')">
+          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=Garage+Pod+Layout" alt="Garage Pod" onclick="openModal(this.src, 'Garage Pod Layout')">
           <div class="plan-title">Garage Pod</div>
         </div>
         <div class="plan-card">
-          <img src="assets/site_map.png" alt="Site Boundary Map" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=OSI+Site+Map'" onclick="openModal(this.src, 'OSI Site Map')">
+          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=OSI+Site+Map" alt="Site Boundary Map" onclick="openModal(this.src, 'OSI Site Map')">
           <div class="plan-title">Site Map</div>
         </div>
       </div>
@@ -304,6 +294,7 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).style.display = 'block';
       event.target.classList.add('active');
+      if (tabName === '3d') init3DCanvas();
     }
 
     function moveRow(button, direction) {
@@ -349,15 +340,6 @@
       updatePackageNumbers();
     }
 
-    /* 3D Model Updater */
-    function update3DModelUrl() {
-      const url = prompt("Enter 3D Model (.glb / .gltf) file path or web URL:", "house_model.glb");
-      if (url) {
-        const viewer = document.getElementById('mainViewer');
-        viewer.src = url;
-      }
-    }
-
     /* Modal Functions */
     function openModal(imgSrc, title) {
       document.getElementById('modalImage').src = imgSrc;
@@ -383,6 +365,110 @@
         <div class="plan-title">${title}</div>
       `;
       grid.appendChild(card);
+    }
+
+    /* Lightweight Interactive 3D Canvas Engine */
+    let canvasInited = false;
+    function init3DCanvas() {
+      if (canvasInited) return;
+      canvasInited = true;
+      
+      const canvas = document.getElementById('canvas3d');
+      const ctx = canvas.getContext('2d');
+      
+      function resize() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let rotX = 0.4, rotY = 0.6;
+      let isDragging = false, lastX = 0, lastY = 0;
+
+      canvas.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        rotY += (e.clientX - lastX) * 0.01;
+        rotX += (e.clientY - lastY) * 0.01;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        draw();
+      });
+      window.addEventListener('pointerup', () => isDragging = false);
+
+      // Define 3D Building Nodes (Foundation, RC Columns, Upper Floor, Roof)
+      const nodes = [
+        // Basement Raft (-Y)
+        {x:-1, y:-1, z:-1}, {x:1, y:-1, z:-1}, {x:1, y:-1, z:1}, {x:-1, y:-1, z:1},
+        // Ground Slab
+        {x:-1, y:-0.3, z:-1}, {x:1, y:-0.3, z:-1}, {x:1, y:-0.3, z:1}, {x:-1, y:-0.3, z:1},
+        // First Floor Deck
+        {x:-1, y:0.4, z:-1}, {x:1, y:0.4, z:-1}, {x:1, y:0.4, z:1}, {x:-1, y:0.4, z:1},
+        // Roof Apex
+        {x:0, y:1.1, z:0}
+      ];
+
+      const edges = [
+        // Raft base
+        [0,1], [1,2], [2,3], [3,0],
+        // Basement Walls
+        [0,4], [1,5], [2,6], [3,7],
+        // Ground Deck
+        [4,5], [5,6], [6,7], [7,4],
+        // RC Columns
+        [4,8], [5,9], [6,10], [7,11],
+        // First Floor Deck
+        [8,9], [9,10], [10,11], [11,8],
+        // Roof Trusses
+        [8,12], [9,12], [10,12], [11,12]
+      ];
+
+      function project(p) {
+        // Rotation Y
+        let x1 = p.x * Math.cos(rotY) + p.z * Math.sin(rotY);
+        let z1 = -p.x * Math.sin(rotY) + p.z * Math.cos(rotY);
+        // Rotation X
+        let y2 = p.y * Math.cos(rotX) - z1 * Math.sin(rotX);
+        let z2 = p.y * Math.sin(rotX) + z1 * Math.cos(rotX);
+        
+        let scale = 120 / (z2 + 3.5);
+        return {
+          x: canvas.width / 2 + x1 * scale,
+          y: canvas.height / 2 - y2 * scale
+        };
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw edges
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 2;
+        edges.forEach(e => {
+          let p1 = project(nodes[e[0]]);
+          let p2 = project(nodes[e[1]]);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        });
+
+        // Draw Column Nodes
+        nodes.forEach((n, idx) => {
+          let p = project(n);
+          ctx.fillStyle = idx >= 4 && idx <= 11 ? '#10b981' : '#60a5fa';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      draw();
     }
   </script>
 </body>
