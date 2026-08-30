@@ -64,7 +64,7 @@
     /* Package Table */
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
-    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--border); }
+    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     th { color: var(--text-sub); font-weight: 500; }
     
     .badge {
@@ -77,6 +77,20 @@
     .badge-done { background: #065f46; color: #a7f3d0; }
     .badge-pending { background: #92400e; color: #fef3c7; }
     .badge-phase { background: #1e3a8a; color: #bfdbfe; }
+
+    /* Move Controls */
+    .btn-move {
+      background: #374151;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      margin-right: 2px;
+    }
+    .btn-move:hover { background: var(--accent); }
+    .action-cols { white-space: nowrap; width: 60px; }
 
     /* Action Button */
     .btn-add {
@@ -110,7 +124,7 @@
     <button class="tab-btn" onclick="showTab('plans')">📐 Floor Plans</button>
   </div>
 
-  <!-- TAB 1: BUDGET & ALL 18 PACKAGES -->
+  <!-- TAB 1: BUDGET & PACKAGES -->
   <div id="tab-budget" class="tab-content">
     <div class="card" style="margin-bottom: 16px;">
       <div class="stats-container">
@@ -135,31 +149,32 @@
         <table id="pkg-table">
           <thead>
             <tr>
+              <th class="action-cols">Order</th>
               <th>#</th>
               <th>Work Package Description</th>
               <th>Est. (€)</th>
               <th>Status</th>
             </tr>
           </thead>
-          <tbody>
-            <tr><td>1</td><td>Skehana GWS Water Membership</td><td>2,000</td><td><span class="badge badge-done">PAID (€2k)</span></td></tr>
-            <tr><td>2</td><td>Oliver Ruane Planning Permit & CAD</td><td>3,700</td><td><span class="badge badge-done">PAID (€3.7k)</span></td></tr>
-            <tr><td>3</td><td>Ted Water Vault & Lockable Standpipe</td><td>1,500</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-            <tr><td>4</td><td>Boundary Hedgerow Trimming & Entrance Tidy</td><td>300</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-            <tr><td>5</td><td>Planning Site Notice Protection & Maintenance</td><td>100</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-            <tr><td>6</td><td>BCMS Opt-In & Statutory Setup (€4,000)</td><td>4,000</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
-            <tr><td>7</td><td>Galway Co. Co. Section 48 Levy (€4,500)</td><td>4,500</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
-            <tr><td>8</td><td>Bulk Excavation & Basement Pit Dig</td><td>6,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
-            <tr><td>9</td><td>Site Sub-Base Prep & Crushed Stone</td><td>8,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
-            <tr><td>10</td><td>Foundation Rebar Steel & Concrete Raft Pour</td><td>18,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
-            <tr><td>11</td><td>Basement Retaining Walls & Tanking</td><td>16,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
-            <tr><td>12</td><td>Garage Pod Construction & Temp Workspace</td><td>18,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
-            <tr><td>13</td><td>Main House RC Column Skeleton Grid</td><td>22,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
-            <tr><td>14</td><td>Upper Floor Decks & Atrium Void Decking</td><td>17,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
-            <tr><td>15</td><td>Roof Framing, Trusses & Enclosure</td><td>32,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
-            <tr><td>16</td><td>External Wall Infill, Glazing & Watertight</td><td>42,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
-            <tr><td>17</td><td>Underground Trenching & First-Fix MEP</td><td>48,000</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
-            <tr><td>18</td><td>Final Statutory BCMS Sign-Off & Activation</td><td>2,500</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
+          <tbody id="pkg-tbody">
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">1</td><td>Skehana GWS Water Membership</td><td>2,000</td><td><span class="badge badge-done">PAID (€2k)</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">2</td><td>Oliver Ruane Planning Permit & CAD</td><td>3,700</td><td><span class="badge badge-done">PAID (€3.7k)</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">3</td><td>Ted Water Vault & Lockable Standpipe</td><td>1,500</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">4</td><td>Boundary Hedgerow Trimming & Entrance Tidy</td><td>300</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">5</td><td>Planning Site Notice Protection & Maintenance</td><td>100</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">6</td><td>BCMS Opt-In & Statutory Setup (€4,000)</td><td>4,000</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">7</td><td>Galway Co. Co. Section 48 Levy (€4,500)</td><td>4,500</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">8</td><td>Bulk Excavation & Basement Pit Dig</td><td>6,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">9</td><td>Site Sub-Base Prep & Crushed Stone</td><td>8,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">10</td><td>Foundation Rebar Steel & Concrete Raft Pour</td><td>18,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">11</td><td>Basement Retaining Walls & Tanking</td><td>16,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">12</td><td>Garage Pod Construction & Temp Workspace</td><td>18,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">13</td><td>Main House RC Column Skeleton Grid</td><td>22,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">14</td><td>Upper Floor Decks & Atrium Void Decking</td><td>17,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">15</td><td>Roof Framing, Trusses & Enclosure</td><td>32,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">16</td><td>External Wall Infill, Glazing & Watertight</td><td>42,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">17</td><td>Underground Trenching & First-Fix MEP</td><td>48,000</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
+            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">18</td><td>Final Statutory BCMS Sign-Off & Activation</td><td>2,500</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -204,16 +219,47 @@
       event.target.classList.add('active');
     }
 
+    function moveRow(button, direction) {
+      const row = button.closest('tr');
+      const tbody = row.parentNode;
+      
+      if (direction === 'up' && row.previousElementSibling) {
+        tbody.insertBefore(row, row.previousElementSibling);
+      } else if (direction === 'down' && row.nextElementSibling) {
+        tbody.insertBefore(row.nextElementSibling, row);
+      }
+      
+      updatePackageNumbers();
+    }
+
+    function updatePackageNumbers() {
+      const rows = document.querySelectorAll('#pkg-tbody tr');
+      rows.forEach((row, index) => {
+        row.querySelector('.pkg-num').textContent = index + 1;
+      });
+    }
+
     function addNewPackage() {
       const name = prompt("Enter new Task or Sub-Package Description:");
       if (!name) return;
       const cost = prompt("Enter Estimated Amount (€):", "0");
       
-      const table = document.getElementById("pkg-table").getElementsByTagName('tbody')[0];
-      const newRow = table.insertRow();
-      const count = table.rows.length;
+      const tbody = document.getElementById("pkg-tbody");
+      const newRow = document.createElement('tr');
 
-      newRow.innerHTML = `<td>${count}</td><td>${name}</td><td>${Number(cost).toLocaleString()}</td><td><span class="badge badge-pending">NEW</span></td>`;
+      newRow.innerHTML = `
+        <td class="action-cols">
+          <button class="btn-move" onclick="moveRow(this, 'up')">▲</button>
+          <button class="btn-move" onclick="moveRow(this, 'down')">▼</button>
+        </td>
+        <td class="pkg-num">0</td>
+        <td>${name}</td>
+        <td>${Number(cost).toLocaleString()}</td>
+        <td><span class="badge badge-pending">NEW</span></td>
+      `;
+
+      tbody.appendChild(newRow);
+      updatePackageNumbers();
     }
   </script>
 </body>
