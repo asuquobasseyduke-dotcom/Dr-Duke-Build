@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Duke's Self-Build Dashboard</title>
+  <!-- Google Model Viewer for 3D Models -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <style>
+    :root {
+      --bg: #121826;
+      --card-bg: #1f293d;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #f3f4f6;
+      --text-sub: #9ca3af;
+      --border: #374151;
+      --green: #10b981;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+    h1, h2, h3 { margin: 0 0 12px 0; font-weight: 600; }
+    h1 { font-size: 1.4rem; color: #fff; }
+    h2 { font-size: 1.1rem; color: var(--text-sub); margin-top: 20px; }
+    
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 3D Viewer */
+    model-viewer {
+      width: 100%;
+      height: 300px;
+      background-color: #0d1117;
+      border-radius: 8px;
+    }
+
+    /* Tab Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); }
+
+    /* Package Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-sub); font-weight: 500; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-done { background: #065f46; color: #a7f3d0; }
+    .badge-pending { background: #92400e; color: #fef3c7; }
+
+    /* Summary Stats */
+    .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-box { background: #111827; padding: 12px; border-radius: 8px; text-align: center; }
+    .stat-val { font-size: 1.2rem; font-weight: 700; color: var(--green); }
+    .stat-lbl { font-size: 0.75rem; color: var(--text-sub); }
+
+    /* Image Gallery */
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+    .gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+  <h1>🏗️ Ballinamona Build Control</h1>
+  
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow</button>
+    <button class="tab-btn" onclick="showTab('3d')">🧊 3D Model</button>
+    <button class="tab-btn" onclick="showTab('plans')">📐 Floor Plans</button>
+  </div>
+
+  <!-- TAB 1: BUDGET & PACKAGES -->
+  <div id="tab-budget" class="tab-content">
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="stat-val">€5,700</div>
+          <div class="stat-lbl">Total Paid</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">€247,600</div>
+          <div class="stat-lbl">Target Total</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Master Package Ledger</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Work Package</th>
+            <th>Cost (€)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Skehana GWS Membership</td><td>2,000</td><td><span class="badge badge-done">PAID</span></td></tr>
+          <tr><td>2</td><td>Oliver Ruane Planning CAD</td><td>3,700</td><td><span class="badge badge-done">PAID</span></td></tr>
+          <tr><td>3</td><td>Ted Water Vault & Standpipe</td><td>1,500</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+          <tr><td>4</td><td>Entrance Sightline Tidy</td><td>300</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+          <tr><td>5</td><td>Planning Site Notice Check</td><td>100</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+          <tr><td>6</td><td>BCMS Statutory Setup</td><td>4,000</td><td><span class="badge badge-pending">PHASE 2</span></td></tr>
+          <tr><td>7</td><td>Council Section 48 Levy</td><td>4,500</td><td><span class="badge badge-pending">PHASE 2</span></td></tr>
+          <tr><td>8</td><td>Bulk Excavation & Pit Dig</td><td>6,500</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
+          <tr><td>9</td><td>Sub-Base & Crushed Stone</td><td>8,500</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
+          <tr><td>10</td><td>Foundation Raft Pour</td><td>18,000</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: 3D MODEL VIEWER -->
+  <div id="tab-3d" class="tab-content" style="display: none;">
+    <div class="card">
+      <h3>3D Structure & Grid View</h3>
+      <p style="font-size: 0.8rem; color: var(--text-sub);">Spin, pinch to zoom, or inspect $6\text{ m} \times 6\text{ m}$ column placement.</p>
+      <!-- Upload your exported .glb file to your github repo and link it below -->
+      <model-viewer 
+        src="house_model.glb" 
+        alt="3D Building Model" 
+        auto-rotate 
+        camera-controls 
+        shadow-intensity="1">
+      </model-viewer>
+    </div>
+  </div>
+
+  <!-- TAB 3: FLOOR PLANS & DOSSIER -->
+  <div id="tab-plans" class="tab-content" style="display: none;">
+    <div class="card">
+      <h3>Architectural Plans & Renders</h3>
+      <div class="gallery">
+        <img src="assets/ground_floor.png" alt="Ground Floor" onclick="window.open(this.src)">
+        <img src="assets/first_floor.png" alt="First Floor" onclick="window.open(this.src)">
+        <img src="assets/garage_pod.png" alt="Garage Pod" onclick="window.open(this.src)">
+        <img src="assets/site_map.png" alt="OSI Map" onclick="window.open(this.src)">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).style.display = 'block';
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>
