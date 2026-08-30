@@ -66,7 +66,6 @@
     th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     th { color: var(--text-sub); font-weight: 500; }
 
-    /* Actual Cost Input Box */
     .actual-input {
       width: 75px;
       background: #111827;
@@ -78,7 +77,6 @@
       font-weight: 600;
     }
 
-    /* Interactive Dropdown Statuses */
     .status-select {
       background: #111827;
       color: #fff;
@@ -93,7 +91,6 @@
     .status-pending { background: #92400e; color: #fef3c7; border-color: #d97706; }
     .status-phase { background: #1e3a8a; color: #bfdbfe; border-color: #3b82f6; }
 
-    /* Move Controls */
     .btn-move {
       background: #374151;
       color: #fff;
@@ -107,7 +104,6 @@
     .btn-move:hover { background: var(--accent); }
     .action-cols { white-space: nowrap; width: 60px; }
 
-    /* Action Button */
     .btn-add {
       display: block;
       width: 100%;
@@ -123,7 +119,6 @@
     }
     .btn-add:hover { background: var(--accent-hover); }
 
-    /* Interactive 3D Canvas Box */
     #canvas3d {
       width: 100%;
       height: 350px;
@@ -134,18 +129,22 @@
       touch-action: none;
     }
 
-    /* Floor Plans Grid & Modal */
+    /* Floor Plans Grid & Upload UI */
     .plan-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 12px;
     }
     .plan-card {
       background: #111827;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
     }
     .plan-card img {
       width: 100%;
@@ -153,22 +152,35 @@
       object-fit: cover;
       border-radius: 6px;
       cursor: pointer;
+      background-color: var(--card-bg);
     }
     .plan-title {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      margin-top: 6px;
+      margin: 8px 0;
       color: var(--text);
     }
+    .btn-upload {
+      background: #374151;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      display: inline-block;
+    }
+    .btn-upload:hover { background: var(--accent); }
+    .file-input { display: none; }
 
-    /* Modal Viewer */
     .modal {
       display: none;
       position: fixed;
       z-index: 1000;
       left: 0; top: 0;
       width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.9);
+      background-color: rgba(0,0,0,0.95);
       padding: 20px;
       box-sizing: border-box;
       text-align: center;
@@ -178,6 +190,7 @@
       max-height: 80vh;
       border-radius: 8px;
       margin-top: 20px;
+      object-fit: contain;
     }
     .close-btn {
       position: absolute;
@@ -267,34 +280,60 @@
     </div>
   </div>
 
-  <!-- TAB 3: INTERACTIVE FLOOR PLANS -->
+  <!-- TAB 3: DIRECT IMAGE UPLOAD FLOOR PLANS -->
   <div id="tab-plans" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Architectural Plans & Dossier Renders</h3>
       <div class="plan-grid" id="plan-grid">
+        
+        <!-- Ground Floor -->
         <div class="plan-card">
-          <img src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=Ground+Floor+Plan" alt="Ground Floor" onclick="openModal(this.src, 'Ground Floor Plan')">
+          <img id="img-ground" src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=No+Image+Uploaded" alt="Ground Floor" onclick="openModal(this.src, 'Ground Floor Plan')">
           <div class="plan-title">Ground Floor</div>
+          <label class="btn-upload">📷 Upload Image
+            <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-ground', 'plan_ground')">
+          </label>
         </div>
+
+        <!-- First Floor -->
         <div class="plan-card">
-          <img src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=First+Floor+Plan" alt="First Floor" onclick="openModal(this.src, 'First Floor Plan')">
+          <img id="img-first" src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=No+Image+Uploaded" alt="First Floor" onclick="openModal(this.src, 'First Floor Plan')">
           <div class="plan-title">First Floor</div>
+          <label class="btn-upload">📷 Upload Image
+            <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-first', 'plan_first')">
+          </label>
         </div>
+
+        <!-- Basement -->
         <div class="plan-card">
-          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=Basement+Level" alt="Basement Level" onclick="openModal(this.src, 'Basement Level')">
+          <img id="img-basement" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Basement" onclick="openModal(this.src, 'Basement Level')">
           <div class="plan-title">Basement</div>
+          <label class="btn-upload">📷 Upload Image
+            <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-basement', 'plan_basement')">
+          </label>
         </div>
+
+        <!-- Garage Pod -->
         <div class="plan-card">
-          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=Garage+Pod+Layout" alt="Garage Pod" onclick="openModal(this.src, 'Garage Pod Layout')">
+          <img id="img-garage" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Garage Pod" onclick="openModal(this.src, 'Garage Pod Layout')">
           <div class="plan-title">Garage Pod</div>
+          <label class="btn-upload">📷 Upload Image
+            <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-garage', 'plan_garage')">
+          </label>
         </div>
+
+        <!-- Site Map -->
         <div class="plan-card">
-          <img src="https://via.placeholder.com/300x200/1f293d/ffffff?text=OSI+Site+Map" alt="Site Boundary Map" onclick="openModal(this.src, 'OSI Site Map')">
+          <img id="img-sitemap" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Site Map" onclick="openModal(this.src, 'Site Boundary Map')">
           <div class="plan-title">Site Map</div>
+          <label class="btn-upload">📷 Upload Image
+            <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-sitemap', 'plan_sitemap')">
+          </label>
         </div>
+
       </div>
 
-      <button class="btn-add" onclick="addNewPlan()">➕ Link Custom Image/Drawing URL</button>
+      <button class="btn-add" onclick="addNewCategory()">➕ Add New Plan Category</button>
     </div>
   </div>
 
@@ -306,6 +345,19 @@
   </div>
 
   <script>
+    window.onload = function() {
+      // Load saved images from local storage
+      const keys = ['plan_ground', 'plan_first', 'plan_basement', 'plan_garage', 'plan_sitemap'];
+      const imgIds = ['img-ground', 'img-first', 'img-basement', 'img-garage', 'img-sitemap'];
+      
+      keys.forEach((key, index) => {
+        const savedImg = localStorage.getItem(key);
+        if (savedImg) {
+          document.getElementById(imgIds[index]).src = savedImg;
+        }
+      });
+    };
+
     function showTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -388,6 +440,43 @@
       updatePackageNumbers();
     }
 
+    /* Direct Image File Reader & Storage */
+    function uploadImage(input, targetImgId, storageKey) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Img = e.target.result;
+          document.getElementById(targetImgId).src = base64Img;
+          try {
+            localStorage.setItem(storageKey, base64Img);
+          } catch (err) {
+            console.warn("Storage quota exceeded, showing image in current session.");
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addNewCategory() {
+      const title = prompt("Enter Category Name (e.g. Electrical Layout, Roof Details):");
+      if (!title) return;
+      const id = 'img-' + Date.now();
+      const storageKey = 'plan_' + Date.now();
+
+      const grid = document.getElementById("plan-grid");
+      const card = document.createElement("div");
+      card.className = "plan-card";
+      card.innerHTML = `
+        <img id="${id}" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="${title}" onclick="openModal(this.src, '${title}')">
+        <div class="plan-title">${title}</div>
+        <label class="btn-upload">📷 Upload Image
+          <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, '${id}', '${storageKey}')">
+        </label>
+      `;
+      grid.appendChild(card);
+    }
+
     /* Modal Functions */
     function openModal(imgSrc, title) {
       document.getElementById('modalImage').src = imgSrc;
@@ -397,22 +486,6 @@
 
     function closeModal() {
       document.getElementById('imgModal').style.display = 'none';
-    }
-
-    function addNewPlan() {
-      const title = prompt("Enter Drawing / Plan Name:", "New Drawing");
-      if (!title) return;
-      const url = prompt("Enter Image URL or Path (e.g. assets/my_drawing.png):");
-      if (!url) return;
-
-      const grid = document.getElementById("plan-grid");
-      const card = document.createElement("div");
-      card.className = "plan-card";
-      card.innerHTML = `
-        <img src="${url}" alt="${title}" onerror="this.src='https://via.placeholder.com/300x200/1f293d/ffffff?text=${encodeURIComponent(title)}'" onclick="openModal(this.src, '${title}')">
-        <div class="plan-title">${title}</div>
-      `;
-      grid.appendChild(card);
     }
 
     /* Lightweight Interactive 3D Canvas Engine */
