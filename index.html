@@ -109,8 +109,14 @@
     }
     .btn-add:hover { background: var(--accent-hover); }
 
-    /* 3D Viewer */
-    model-viewer { width: 100%; height: 320px; background-color: #0d1117; border-radius: 8px; }
+    /* 3D Viewer Container */
+    model-viewer {
+      width: 100%;
+      height: 380px;
+      background-color: #0d1117;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
 
     /* Floor Plans Grid & Modal */
     .plan-grid {
@@ -234,18 +240,23 @@
     </div>
   </div>
 
-  <!-- TAB 2: 3D MODEL VIEWER -->
+  <!-- TAB 2: INTERACTIVE 3D MODEL VIEWER -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
-      <h3>3D Structure & Grid View</h3>
-      <p style="font-size: 0.8rem; color: var(--text-sub);">Interactive structural columns and layout viewer.</p>
+      <h3>3D Structure & Structural Grid View</h3>
+      <p style="font-size: 0.8rem; color: var(--text-sub);">Spin, drag, or pinch to inspect structural geometry.</p>
+      
       <model-viewer 
-        src="house_model.glb" 
-        alt="3D Building Model" 
+        id="mainViewer"
+        src="house_model.glb"
+        alt="3D Building Structure" 
         auto-rotate 
         camera-controls 
-        shadow-intensity="1">
+        shadow-intensity="1"
+        onerror="this.src='https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb'">
       </model-viewer>
+
+      <button class="btn-add" onclick="update3DModelUrl()">➕ Load Custom 3D Model (.glb / .gltf) URL</button>
     </div>
   </div>
 
@@ -336,6 +347,15 @@
 
       tbody.appendChild(newRow);
       updatePackageNumbers();
+    }
+
+    /* 3D Model Updater */
+    function update3DModelUrl() {
+      const url = prompt("Enter 3D Model (.glb / .gltf) file path or web URL:", "house_model.glb");
+      if (url) {
+        const viewer = document.getElementById('mainViewer');
+        viewer.src = url;
+      }
     }
 
     /* Modal Functions */
