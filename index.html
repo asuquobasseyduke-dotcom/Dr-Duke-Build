@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dr. Duke's Self-Build Dashboard</title>
+  <title>Dr Duke Residential</title>
   <!-- Google Model Viewer for 3D Models -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
@@ -27,25 +27,13 @@
     }
     h1, h2, h3 { margin: 0 0 12px 0; font-weight: 600; }
     h1 { font-size: 1.4rem; color: #fff; }
-    h2 { font-size: 1.1rem; color: var(--text-sub); margin-top: 20px; }
     
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
-
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    }
-
-    /* 3D Viewer */
-    model-viewer {
-      width: 100%;
-      height: 300px;
-      background-color: #0d1117;
-      border-radius: 8px;
     }
 
     /* Tab Navigation */
@@ -67,51 +55,75 @@
     }
     .tab-btn.active { background: var(--accent); border-color: var(--accent); }
 
+    /* Summary Stats */
+    .stats-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stat-box { background: #111827; padding: 10px; border-radius: 8px; text-align: center; }
+    .stat-val { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+    .stat-lbl { font-size: 0.7rem; color: var(--text-sub); }
+
     /* Package Table */
+    .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
-    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--border); }
     th { color: var(--text-sub); font-weight: 500; }
+    
     .badge {
       display: inline-block;
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
     }
     .badge-done { background: #065f46; color: #a7f3d0; }
     .badge-pending { background: #92400e; color: #fef3c7; }
+    .badge-phase { background: #1e3a8a; color: #bfdbfe; }
 
-    /* Summary Stats */
-    .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stat-box { background: #111827; padding: 12px; border-radius: 8px; text-align: center; }
-    .stat-val { font-size: 1.2rem; font-weight: 700; color: var(--green); }
-    .stat-lbl { font-size: 0.75rem; color: var(--text-sub); }
+    /* Action Button */
+    .btn-add {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .btn-add:hover { background: var(--accent-hover); }
 
-    /* Image Gallery */
+    /* 3D Viewer */
+    model-viewer { width: 100%; height: 320px; background-color: #0d1117; border-radius: 8px; }
     .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
     .gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
-  <h1>🏗️ Ballinamona Build Control</h1>
+  <h1>🏗️ Dr Duke Residential Control</h1>
   
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow</button>
+    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow (18 Pkgs)</button>
     <button class="tab-btn" onclick="showTab('3d')">🧊 3D Model</button>
     <button class="tab-btn" onclick="showTab('plans')">📐 Floor Plans</button>
   </div>
 
-  <!-- TAB 1: BUDGET & PACKAGES -->
+  <!-- TAB 1: BUDGET & ALL 18 PACKAGES -->
   <div id="tab-budget" class="tab-content">
     <div class="card" style="margin-bottom: 16px;">
       <div class="stats-container">
         <div class="stat-box">
           <div class="stat-val">€5,700</div>
-          <div class="stat-lbl">Total Paid</div>
+          <div class="stat-lbl">Actual Paid</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val">€247,600</div>
+          <div class="stat-val" style="color:#f59e0b;">€241,900</div>
+          <div class="stat-lbl">Balance</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" style="color:#60a5fa;">€247,600</div>
           <div class="stat-lbl">Target Total</div>
         </div>
       </div>
@@ -119,28 +131,40 @@
 
     <div class="card">
       <h3>Master Package Ledger</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Work Package</th>
-            <th>Cost (€)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>Skehana GWS Membership</td><td>2,000</td><td><span class="badge badge-done">PAID</span></td></tr>
-          <tr><td>2</td><td>Oliver Ruane Planning CAD</td><td>3,700</td><td><span class="badge badge-done">PAID</span></td></tr>
-          <tr><td>3</td><td>Ted Water Vault & Standpipe</td><td>1,500</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-          <tr><td>4</td><td>Entrance Sightline Tidy</td><td>300</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-          <tr><td>5</td><td>Planning Site Notice Check</td><td>100</td><td><span class="badge badge-pending">PENDING</span></td></tr>
-          <tr><td>6</td><td>BCMS Statutory Setup</td><td>4,000</td><td><span class="badge badge-pending">PHASE 2</span></td></tr>
-          <tr><td>7</td><td>Council Section 48 Levy</td><td>4,500</td><td><span class="badge badge-pending">PHASE 2</span></td></tr>
-          <tr><td>8</td><td>Bulk Excavation & Pit Dig</td><td>6,500</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
-          <tr><td>9</td><td>Sub-Base & Crushed Stone</td><td>8,500</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
-          <tr><td>10</td><td>Foundation Raft Pour</td><td>18,000</td><td><span class="badge badge-pending">PHASE 3</span></td></tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table id="pkg-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Work Package Description</th>
+              <th>Est. (€)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Skehana GWS Water Membership</td><td>2,000</td><td><span class="badge badge-done">PAID (€2k)</span></td></tr>
+            <tr><td>2</td><td>Oliver Ruane Planning Permit & CAD</td><td>3,700</td><td><span class="badge badge-done">PAID (€3.7k)</span></td></tr>
+            <tr><td>3</td><td>Ted Water Vault & Lockable Standpipe</td><td>1,500</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td>4</td><td>Boundary Hedgerow Trimming & Entrance Tidy</td><td>300</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td>5</td><td>Planning Site Notice Protection & Maintenance</td><td>100</td><td><span class="badge badge-pending">PENDING</span></td></tr>
+            <tr><td>6</td><td>BCMS Opt-In & Statutory Setup (€4,000)</td><td>4,000</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
+            <tr><td>7</td><td>Galway Co. Co. Section 48 Levy (€4,500)</td><td>4,500</td><td><span class="badge badge-phase">PHASE 2</span></td></tr>
+            <tr><td>8</td><td>Bulk Excavation & Basement Pit Dig</td><td>6,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td>9</td><td>Site Sub-Base Prep & Crushed Stone</td><td>8,500</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td>10</td><td>Foundation Rebar Steel & Concrete Raft Pour</td><td>18,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td>11</td><td>Basement Retaining Walls & Tanking</td><td>16,000</td><td><span class="badge badge-phase">PHASE 3</span></td></tr>
+            <tr><td>12</td><td>Garage Pod Construction & Temp Workspace</td><td>18,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td>13</td><td>Main House RC Column Skeleton Grid</td><td>22,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td>14</td><td>Upper Floor Decks & Atrium Void Decking</td><td>17,500</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td>15</td><td>Roof Framing, Trusses & Enclosure</td><td>32,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td>16</td><td>External Wall Infill, Glazing & Watertight</td><td>42,000</td><td><span class="badge badge-phase">PHASE 4</span></td></tr>
+            <tr><td>17</td><td>Underground Trenching & First-Fix MEP</td><td>48,000</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
+            <tr><td>18</td><td>Final Statutory BCMS Sign-Off & Activation</td><td>2,500</td><td><span class="badge badge-phase">PHASE 5</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn-add" onclick="addNewPackage()">➕ Add Custom Task / Sub-Item</button>
     </div>
   </div>
 
@@ -148,8 +172,7 @@
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
       <h3>3D Structure & Grid View</h3>
-      <p style="font-size: 0.8rem; color: var(--text-sub);">Spin, pinch to zoom, or inspect $6\text{ m} \times 6\text{ m}$ column placement.</p>
-      <!-- Upload your exported .glb file to your github repo and link it below -->
+      <p style="font-size: 0.8rem; color: var(--text-sub);">Interactive structural columns and layout viewer.</p>
       <model-viewer 
         src="house_model.glb" 
         alt="3D Building Model" 
@@ -165,10 +188,10 @@
     <div class="card">
       <h3>Architectural Plans & Renders</h3>
       <div class="gallery">
-        <img src="assets/ground_floor.png" alt="Ground Floor" onclick="window.open(this.src)">
-        <img src="assets/first_floor.png" alt="First Floor" onclick="window.open(this.src)">
-        <img src="assets/garage_pod.png" alt="Garage Pod" onclick="window.open(this.src)">
-        <img src="assets/site_map.png" alt="OSI Map" onclick="window.open(this.src)">
+        <img src="assets/ground_floor.png" alt="Ground Floor Plan" onclick="window.open(this.src)">
+        <img src="assets/first_floor.png" alt="First Floor Plan" onclick="window.open(this.src)">
+        <img src="assets/garage_pod.png" alt="Garage Pod Layout" onclick="window.open(this.src)">
+        <img src="assets/site_map.png" alt="Site Map" onclick="window.open(this.src)">
       </div>
     </div>
   </div>
@@ -179,6 +202,18 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).style.display = 'block';
       event.target.classList.add('active');
+    }
+
+    function addNewPackage() {
+      const name = prompt("Enter new Task or Sub-Package Description:");
+      if (!name) return;
+      const cost = prompt("Enter Estimated Amount (€):", "0");
+      
+      const table = document.getElementById("pkg-table").getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+      const count = table.rows.length;
+
+      newRow.innerHTML = `<td>${count}</td><td>${name}</td><td>${Number(cost).toLocaleString()}</td><td><span class="badge badge-pending">NEW</span></td>`;
     }
   </script>
 </body>
