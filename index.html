@@ -1,10 +1,3 @@
-The reason the Actual (€) numbers reset on refresh is that typing inside an <input> field triggers oninput, but when you click out or refresh, the input field's final value wasn't being saved back to Firebase because saveToCloud() was looking for .value during typing rather than capturing onchange / onblur events properly, or Firebase hit a security rule check.
-
-Here is the fixed code. It updates saveToCloud() so that typing in any Actual (€) box automatically saves to the cloud instantly as you type (oninput) AND when you click away (onblur / onchange).
-
-Copy and paste this updated code into your index.html file on GitHub, commit the changes, and refresh:
-
-HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +5,7 @@ HTML
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dr Duke Residential</title>
 
+  <!-- Firebase Cloud SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -226,6 +220,7 @@ HTML
     <button class="tab-btn" id="btn-tab-plans" onclick="showTab('plans')">🖼️ Floor Plans</button>
   </div>
 
+  <!-- TAB 1: BUDGET & PACKAGES -->
   <div id="tab-budget" class="tab-content">
     <div class="card">
       <div class="stats-container">
@@ -259,7 +254,8 @@ HTML
             </tr>
           </thead>
           <tbody id="pkg-tbody">
-            </tbody>
+            <!-- Loaded via JavaScript -->
+          </tbody>
         </table>
       </div>
 
@@ -268,6 +264,7 @@ HTML
     </div>
   </div>
 
+  <!-- TAB 2: INTERACTIVE 2D/3D FLOOR PLANNER -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Interactive 2D/3D Floor Planner Engine</h3>
@@ -280,6 +277,7 @@ HTML
     </div>
   </div>
 
+  <!-- TAB 3: DIRECT IMAGE UPLOAD FLOOR PLANS -->
   <div id="tab-plans" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Architectural Plans & Dossier Renders</h3>
@@ -324,6 +322,7 @@ HTML
     </div>
   </div>
 
+  <!-- FULL SCREEN IMAGE MODAL -->
   <div id="imgModal" class="modal">
     <span class="close-btn" onclick="closeModal()">&times;</span>
     <h3 id="modalTitle" style="color: #fff; margin-top: 10px;">Plan View</h3>
@@ -370,7 +369,6 @@ HTML
     ];
 
     window.onload = function() {
-      // First load local storage or defaults immediately so UI is never blank
       const localData = localStorage.getItem('dr_duke_packages');
       if (localData) {
         try { renderPackages(JSON.parse(localData)); } catch(e) { renderPackages(defaultPackages); }
@@ -388,7 +386,6 @@ HTML
         if (doc.exists) {
           const data = doc.data();
           if (data.packages && data.packages.length > 0) {
-            // Only update if element isn't currently focused to prevent wiping typed text
             if (!document.activeElement || !document.activeElement.classList.contains('actual-input')) {
               renderPackages(data.packages);
             }
@@ -415,7 +412,7 @@ HTML
     function handleInputChange() {
       calculateTotals();
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(saveToCloud, 600); // Auto-save 600ms after user stops typing
+      saveTimeout = setTimeout(saveToCloud, 600);
     }
 
     function saveToCloud() {
@@ -431,10 +428,8 @@ HTML
         updatedPackages.push({ name, est, actual, status });
       });
 
-      // Save to localStorage as immediate offline backup
       localStorage.setItem('dr_duke_packages', JSON.stringify(updatedPackages));
 
-      // Save to Firebase Cloud
       if (db) {
         db.collection("build_app").doc("master_data").set({ packages: updatedPackages }, { merge: true }).then(() => {
           document.getElementById('sync-status').textContent = '☁️ Cloud Synced';
