@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dr Duke Residential</title>
 
-  <!-- Firebase Cloud SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -208,7 +207,6 @@
     <button class="tab-btn" onclick="showTab('plans')">🖼️ Floor Plans</button>
   </div>
 
-  <!-- TAB 1: BUDGET & PACKAGES -->
   <div id="tab-budget" class="tab-content">
     <div class="card">
       <div class="stats-container">
@@ -242,8 +240,7 @@
             </tr>
           </thead>
           <tbody id="pkg-tbody">
-            <!-- Dynamically Loaded from Firebase -->
-          </tbody>
+            </tbody>
         </table>
       </div>
 
@@ -251,7 +248,6 @@
     </div>
   </div>
 
-  <!-- TAB 2: INTERACTIVE 2D/3D FLOOR PLANNER -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Interactive 2D/3D Floor Planner Engine</h3>
@@ -264,7 +260,6 @@
     </div>
   </div>
 
-  <!-- TAB 3: DIRECT IMAGE UPLOAD FLOOR PLANS -->
   <div id="tab-plans" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Architectural Plans & Dossier Renders</h3>
@@ -309,7 +304,6 @@
     </div>
   </div>
 
-  <!-- FULL SCREEN IMAGE MODAL -->
   <div id="imgModal" class="modal">
     <span class="close-btn" onclick="closeModal()">&times;</span>
     <h3 id="modalTitle" style="color: #fff; margin-top: 10px;">Plan View</h3>
@@ -317,18 +311,14 @@
   </div>
 
   <script>
-    // -------------------------------------------------------------
-    // REPLACE THIS FIREBASE CONFIG BLOCK WITH YOUR CREDENTIALS FROM STEP 1
-    // -------------------------------------------------------------
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY_HERE",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBY3AozgOsmqnvr_CbhL-KJqSq75SFb8IA",
+      authDomain: "dr-duke-build.firebaseapp.com",
+      projectId: "dr-duke-build",
+      storageBucket: "dr-duke-build.firebasestorage.app",
+      messagingSenderId: "500587007846",
+      appId: "1:500587007846:web:ac3e1af98526986e3b02a7"
     };
-    // -------------------------------------------------------------
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -359,14 +349,12 @@
     };
 
     function listenToCloudData() {
-      // Real-time listener for package ledger
       db.collection("build_app").doc("master_data").onSnapshot((doc) => {
         if (doc.exists) {
           const data = doc.data();
           renderPackages(data.packages || []);
           renderImages(data.images || {});
         } else {
-          // Initialize DB with defaults
           db.collection("build_app").doc("master_data").set({ packages: defaultPackages, images: {} });
         }
       });
@@ -390,137 +378,4 @@
     }
 
     function renderPackages(packages) {
-      const tbody = document.getElementById("pkg-tbody");
-      tbody.innerHTML = "";
-      packages.forEach((pkg, index) => {
-        const row = document.createElement('tr');
-        const paidClass = pkg.status === 'PAID' ? 'status-paid' : (pkg.status === 'PENDING' ? 'status-pending' : 'status-phase');
-        row.innerHTML = `
-          <td class="action-cols">
-            <button class="btn-move" onclick="moveRow(this, 'up')">▲</button>
-            <button class="btn-move" onclick="moveRow(this, 'down')">▼</button>
-          </td>
-          <td class="pkg-num">${index + 1}</td>
-          <td>${pkg.name}</td>
-          <td>${pkg.est.toLocaleString()}</td>
-          <td><input type="number" class="actual-input" value="${pkg.actual}" onchange="saveToCloud()" oninput="calculateTotals()"></td>
-          <td>
-            <select class="status-select ${paidClass}" onchange="updateStatusColor(this); saveToCloud();">
-              <option value="PAID" ${pkg.status === 'PAID' ? 'selected' : ''}>PAID</option>
-              <option value="PENDING" ${pkg.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
-              <option value="PHASE 2" ${pkg.status === 'PHASE 2' ? 'selected' : ''}>PHASE 2</option>
-              <option value="PHASE 3" ${pkg.status === 'PHASE 3' ? 'selected' : ''}>PHASE 3</option>
-              <option value="PHASE 4" ${pkg.status === 'PHASE 4' ? 'selected' : ''}>PHASE 4</option>
-              <option value="PHASE 5" ${pkg.status === 'PHASE 5' ? 'selected' : ''}>PHASE 5</option>
-            </select>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-      calculateTotals();
-    }
-
-    function renderImages(images) {
-      const imgMap = { plan_ground: 'img-ground', plan_first: 'img-first', plan_basement: 'img-basement', plan_garage: 'img-garage', plan_sitemap: 'img-sitemap' };
-      for (const [key, val] of Object.entries(images)) {
-        if (imgMap[key] && document.getElementById(imgMap[key])) {
-          document.getElementById(imgMap[key]).src = val;
-        }
-      }
-    }
-
-    function uploadImage(input, targetImgId, storageKey) {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const base64Img = e.target.result;
-          document.getElementById(targetImgId).src = base64Img;
-          db.collection("build_app").doc("master_data").set({
-            images: { [storageKey]: base64Img }
-          }, { merge: true });
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function calculateTotals() {
-      const inputs = document.querySelectorAll('.actual-input');
-      let totalPaid = 0;
-      inputs.forEach(input => { totalPaid += Number(input.value) || 0; });
-      const targetTotal = 247600;
-      document.getElementById('totalPaidDisplay').textContent = '€' + totalPaid.toLocaleString();
-      document.getElementById('balanceDisplay').textContent = '€' + (targetTotal - totalPaid).toLocaleString();
-    }
-
-    function updateStatusColor(select) {
-      select.classList.remove('status-paid', 'status-pending', 'status-phase');
-      if (select.value === 'PAID') select.classList.add('status-paid');
-      else if (select.value === 'PENDING') select.classList.add('status-pending');
-      else select.classList.add('status-phase');
-    }
-
-    function moveRow(button, direction) {
-      const row = button.closest('tr');
-      const tbody = row.parentNode;
-      if (direction === 'up' && row.previousElementSibling) tbody.insertBefore(row, row.previousElementSibling);
-      else if (direction === 'down' && row.nextElementSibling) tbody.insertBefore(row.nextElementSibling, row);
-      updatePackageNumbers();
-      saveToCloud();
-    }
-
-    function updatePackageNumbers() {
-      document.querySelectorAll('#pkg-tbody tr').forEach((row, i) => row.querySelector('.pkg-num').textContent = i + 1);
-    }
-
-    function addNewPackage() {
-      const name = prompt("Enter new Task or Sub-Package Description:");
-      if (!name) return;
-      const cost = prompt("Enter Estimated Amount (€):", "0");
-      
-      const tbody = document.getElementById("pkg-tbody");
-      const newRow = document.createElement('tr');
-      newRow.innerHTML = `
-        <td class="action-cols">
-          <button class="btn-move" onclick="moveRow(this, 'up')">▲</button>
-          <button class="btn-move" onclick="moveRow(this, 'down')">▼</button>
-        </td>
-        <td class="pkg-num">0</td>
-        <td>${name}</td>
-        <td>${Number(cost).toLocaleString()}</td>
-        <td><input type="number" class="actual-input" value="0" onchange="saveToCloud()" oninput="calculateTotals()"></td>
-        <td>
-          <select class="status-select status-pending" onchange="updateStatusColor(this); saveToCloud();">
-            <option value="PAID">PAID</option>
-            <option value="PENDING" selected>PENDING</option>
-            <option value="PHASE 2">PHASE 2</option>
-            <option value="PHASE 3">PHASE 3</option>
-            <option value="PHASE 4">PHASE 4</option>
-            <option value="PHASE 5">PHASE 5</option>
-          </select>
-        </td>
-      `;
-      tbody.appendChild(newRow);
-      updatePackageNumbers();
-      saveToCloud();
-    }
-
-    function showTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab-' + tabName).style.display = 'block';
-      event.target.classList.add('active');
-    }
-
-    function openModal(imgSrc, title) {
-      document.getElementById('modalImage').src = imgSrc;
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('imgModal').style.display = 'block';
-    }
-
-    function closeModal() {
-      document.getElementById('imgModal').style.display = 'none';
-    }
-  </script>
-</body>
-</html>
+      const tbody = document.getElementById
