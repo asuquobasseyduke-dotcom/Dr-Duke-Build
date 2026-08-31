@@ -115,10 +115,22 @@
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 16px;
+      margin-top: 12px;
       text-align: center;
     }
     .btn-add:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: #374151;
+      color: var(--text-sub);
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+    }
 
     .plan-grid {
       display: grid;
@@ -199,12 +211,12 @@
 </head>
 <body>
 
-  <h1>🏗️ Dr Duke Residential Control <span id="sync-status">☁️ Cloud Synced</span></h1>
+  <h1>🏗️ Dr Duke Residential Control <span id="sync-status">☁️ Ready</span></h1>
   
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow</button>
-    <button class="tab-btn" onclick="showTab('3d')">📐 2D/3D Planner</button>
-    <button class="tab-btn" onclick="showTab('plans')">🖼️ Floor Plans</button>
+    <button class="tab-btn active" id="btn-tab-budget" onclick="showTab('budget')">💰 Cash Flow</button>
+    <button class="tab-btn" id="btn-tab-3d" onclick="showTab('3d')">📐 2D/3D Planner</button>
+    <button class="tab-btn" id="btn-tab-plans" onclick="showTab('plans')">🖼️ Floor Plans</button>
   </div>
 
   <div id="tab-budget" class="tab-content">
@@ -245,6 +257,7 @@
       </div>
 
       <button class="btn-add" onclick="addNewPackage()">➕ Add Custom Task / Sub-Item</button>
+      <button class="btn-secondary" onclick="restoreDefaultPackages()">🔄 Reload All 18 Default Packages</button>
     </div>
   </div>
 
@@ -320,8 +333,13 @@
       appId: "1:500587007846:web:ac3e1af98526986e3b02a7"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch (e) {
+      console.warn("Firebase failed to initialize, using local fallback.", e);
+    }
 
     const defaultPackages = [
       { name: "Skehana GWS Water Membership", est: 2000, actual: 2000, status: "PAID" },
@@ -345,19 +363,37 @@
     ];
 
     window.onload = function() {
-      listenToCloudData();
+      // First load local defaults immediately so UI is never blank
+      renderPackages(defaultPackages);
+      
+      if (db) {
+        listenToCloudData();
+      }
     };
 
     function listenToCloudData() {
       db.collection("build_app").doc("master_data").onSnapshot((doc) => {
         if (doc.exists) {
           const data = doc.data();
-          renderPackages(data.packages || []);
-          renderImages(data.images || {});
+          if (data.packages && data.packages.length > 0) {
+            renderPackages(data.packages);
+          }
+          if (data.images) {
+            renderImages(data.images);
+          }
+          document.getElementById('sync-status').textContent = '☁️ Cloud Synced';
         } else {
           db.collection("build_app").doc("master_data").set({ packages: defaultPackages, images: {} });
         }
+      }, (error) => {
+        console.warn("Firestore access error:", error);
+        document.getElementById('sync-status').textContent = '⚠️ Offline Mode';
       });
+    }
+
+    function restoreDefaultPackages() {
+      renderPackages(defaultPackages);
+      saveToCloud();
     }
 
     function saveToCloud() {
@@ -372,9 +408,13 @@
         updatedPackages.push({ name, est, actual, status });
       });
 
-      db.collection("build_app").doc("master_data").update({ packages: updatedPackages }).then(() => {
-        document.getElementById('sync-status').textContent = '☁️ Cloud Synced';
-      });
+      if (db) {
+        db.collection("build_app").doc("master_data").set({ packages: updatedPackages }, { merge: true }).then(() => {
+          document.getElementById('sync-status').textContent = '☁️ Cloud Synced';
+        }).catch(err => {
+          document.getElementById('sync-status').textContent = '⚠️ Saved Locally';
+        });
+      }
     }
 
     function renderPackages(packages) {
@@ -424,9 +464,11 @@
         reader.onload = function(e) {
           const base64Img = e.target.result;
           document.getElementById(targetImgId).src = base64Img;
-          db.collection("build_app").doc("master_data").set({
-            images: { [storageKey]: base64Img }
-          }, { merge: true });
+          if (db) {
+            db.collection("build_app").doc("master_data").set({
+              images: { [storageKey]: base64Img }
+            }, { merge: true });
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -493,11 +535,21 @@
       saveToCloud();
     }
 
+    /* DIRECT TAB SWITCHING FUNCTION */
     function showTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      // Hide all tabs
+      document.getElementById('tab-budget').style.display = 'none';
+      document.getElementById('tab-3d').style.display = 'none';
+      document.getElementById('tab-plans').style.display = 'none';
+
+      // Remove active class from buttons
+      document.getElementById('btn-tab-budget').classList.remove('active');
+      document.getElementById('btn-tab-3d').classList.remove('active');
+      document.getElementById('btn-tab-plans').classList.remove('active');
+
+      // Show selected tab and set button active
       document.getElementById('tab-' + tabName).style.display = 'block';
-      event.target.classList.add('active');
+      document.getElementById('btn-tab-' + tabName).classList.add('active');
     }
 
     function openModal(imgSrc, title) {
