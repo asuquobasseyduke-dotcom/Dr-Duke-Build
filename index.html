@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dr Duke Residential</title>
+
+  <!-- Firebase Cloud SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg: #121826;
@@ -35,7 +40,6 @@
       margin-bottom: 16px;
     }
 
-    /* Tab Navigation */
     .nav-tabs {
       display: flex;
       gap: 8px;
@@ -54,13 +58,11 @@
     }
     .tab-btn.active { background: var(--accent); border-color: var(--accent); }
 
-    /* Summary Stats */
     .stats-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     .stat-box { background: #111827; padding: 10px; border-radius: 8px; text-align: center; }
     .stat-val { font-size: 1.1rem; font-weight: 700; color: var(--green); }
     .stat-lbl { font-size: 0.7rem; color: var(--text-sub); }
 
-    /* Package Table */
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
     th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -119,7 +121,6 @@
     }
     .btn-add:hover { background: var(--accent-hover); }
 
-    /* Floor Plans Grid & Upload UI */
     .plan-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -188,15 +189,22 @@
       color: #fff; font-size: 30px; font-weight: bold;
       cursor: pointer;
     }
+    
+    #sync-status {
+      font-size: 0.75rem;
+      color: var(--green);
+      float: right;
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🏗️ Dr Duke Residential Control</h1>
+  <h1>🏗️ Dr Duke Residential Control <span id="sync-status">☁️ Cloud Synced</span></h1>
   
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow (18 Pkgs)</button>
-    <button class="tab-btn" onclick="showTab('3d')">📐 Interactive 2D/3D Planner</button>
+    <button class="tab-btn active" onclick="showTab('budget')">💰 Cash Flow</button>
+    <button class="tab-btn" onclick="showTab('3d')">📐 2D/3D Planner</button>
     <button class="tab-btn" onclick="showTab('plans')">🖼️ Floor Plans</button>
   </div>
 
@@ -234,24 +242,7 @@
             </tr>
           </thead>
           <tbody id="pkg-tbody">
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">1</td><td>Skehana GWS Water Membership</td><td>2,000</td><td><input type="number" class="actual-input" value="2000" oninput="calculateTotals()"></td><td><select class="status-select status-paid" onchange="updateStatusColor(this)"><option value="PAID" selected>PAID (€2k)</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">2</td><td>Oliver Ruane Planning Permit & CAD</td><td>3,700</td><td><input type="number" class="actual-input" value="3700" oninput="calculateTotals()"></td><td><select class="status-select status-paid" onchange="updateStatusColor(this)"><option value="PAID" selected>PAID (€3.7k)</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">3</td><td>Ted Water Vault & Lockable Standpipe</td><td>1,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-pending" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING" selected>PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">4</td><td>Boundary Hedgerow Trimming & Entrance Tidy</td><td>300</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-pending" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING" selected>PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">5</td><td>Planning Site Notice Protection & Maintenance</td><td>100</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-pending" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING" selected>PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">6</td><td>BCMS Opt-In & Statutory Setup (€4,000)</td><td>4,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2" selected>PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">7</td><td>Galway Co. Co. Section 48 Levy (€4,500)</td><td>4,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2" selected>PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">8</td><td>Bulk Excavation & Basement Pit Dig</td><td>6,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3" selected>PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">9</td><td>Site Sub-Base Prep & Crushed Stone</td><td>8,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3" selected>PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">10</td><td>Foundation Rebar Steel & Concrete Raft Pour</td><td>18,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3" selected>PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">11</td><td>Basement Retaining Walls & Tanking</td><td>16,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3" selected>PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">12</td><td>Garage Pod Construction & Temp Workspace</td><td>18,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4" selected>PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">13</td><td>Main House RC Column Skeleton Grid</td><td>22,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4" selected>PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">14</td><td>Upper Floor Decks & Atrium Void Decking</td><td>17,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4" selected>PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">15</td><td>Roof Framing, Trusses & Enclosure</td><td>32,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4" selected>PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">16</td><td>External Wall Infill, Glazing & Watertight</td><td>42,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4" selected>PHASE 4</option><option value="PHASE 5">PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">17</td><td>Underground Trenching & First-Fix MEP</td><td>48,000</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5" selected>PHASE 5</option></select></td></tr>
-            <tr><td class="action-cols"><button class="btn-move" onclick="moveRow(this, 'up')">▲</button><button class="btn-move" onclick="moveRow(this, 'down')">▼</button></td><td class="pkg-num">18</td><td>Final Statutory BCMS Sign-Off & Activation</td><td>2,500</td><td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td><td><select class="status-select status-phase" onchange="updateStatusColor(this)"><option value="PAID">PAID</option><option value="PENDING">PENDING</option><option value="PHASE 2">PHASE 2</option><option value="PHASE 3">PHASE 3</option><option value="PHASE 4">PHASE 4</option><option value="PHASE 5" selected>PHASE 5</option></select></td></tr>
+            <!-- Dynamically Loaded from Firebase -->
           </tbody>
         </table>
       </div>
@@ -260,12 +251,11 @@
     </div>
   </div>
 
-  <!-- TAB 2: INTERACTIVE 2D/3D FLOOR PLANNER (OPTION 1) -->
+  <!-- TAB 2: INTERACTIVE 2D/3D FLOOR PLANNER -->
   <div id="tab-3d" class="tab-content" style="display: none;">
     <div class="card">
       <h3>Interactive 2D/3D Floor Planner Engine</h3>
       <p style="font-size: 0.8rem; color: var(--text-sub);">Sketch walls, place structural elements, and view real-time 3D models below.</p>
-      
       <iframe 
         src="https://floorplanner.com/demo" 
         style="width: 100%; height: 550px; border: 1px solid var(--border); border-radius: 8px; background: #fff;"
@@ -279,8 +269,6 @@
     <div class="card">
       <h3>Architectural Plans & Dossier Renders</h3>
       <div class="plan-grid" id="plan-grid">
-        
-        <!-- Ground Floor -->
         <div class="plan-card">
           <img id="img-ground" src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=No+Image+Uploaded" alt="Ground Floor" onclick="openModal(this.src, 'Ground Floor Plan')">
           <div class="plan-title">Ground Floor</div>
@@ -288,8 +276,6 @@
             <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-ground', 'plan_ground')">
           </label>
         </div>
-
-        <!-- First Floor -->
         <div class="plan-card">
           <img id="img-first" src="https://via.placeholder.com/300x200/1f293d/60a5fa?text=No+Image+Uploaded" alt="First Floor" onclick="openModal(this.src, 'First Floor Plan')">
           <div class="plan-title">First Floor</div>
@@ -297,8 +283,6 @@
             <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-first', 'plan_first')">
           </label>
         </div>
-
-        <!-- Basement -->
         <div class="plan-card">
           <img id="img-basement" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Basement" onclick="openModal(this.src, 'Basement Level')">
           <div class="plan-title">Basement</div>
@@ -306,8 +290,6 @@
             <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-basement', 'plan_basement')">
           </label>
         </div>
-
-        <!-- Garage Pod -->
         <div class="plan-card">
           <img id="img-garage" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Garage Pod" onclick="openModal(this.src, 'Garage Pod Layout')">
           <div class="plan-title">Garage Pod</div>
@@ -315,8 +297,6 @@
             <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-garage', 'plan_garage')">
           </label>
         </div>
-
-        <!-- Site Map -->
         <div class="plan-card">
           <img id="img-sitemap" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="Site Map" onclick="openModal(this.src, 'Site Boundary Map')">
           <div class="plan-title">Site Map</div>
@@ -324,9 +304,7 @@
             <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, 'img-sitemap', 'plan_sitemap')">
           </label>
         </div>
-
       </div>
-
       <button class="btn-add" onclick="addNewCategory()">➕ Add New Plan Category</button>
     </div>
   </div>
@@ -339,65 +317,160 @@
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // REPLACE THIS FIREBASE CONFIG BLOCK WITH YOUR CREDENTIALS FROM STEP 1
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY_HERE",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    // -------------------------------------------------------------
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const defaultPackages = [
+      { name: "Skehana GWS Water Membership", est: 2000, actual: 2000, status: "PAID" },
+      { name: "Oliver Ruane Planning Permit & CAD", est: 3700, actual: 3700, status: "PAID" },
+      { name: "Ted Water Vault & Lockable Standpipe", est: 1500, actual: 0, status: "PENDING" },
+      { name: "Boundary Hedgerow Trimming & Entrance Tidy", est: 300, actual: 0, status: "PENDING" },
+      { name: "Planning Site Notice Protection & Maintenance", est: 100, actual: 0, status: "PENDING" },
+      { name: "BCMS Opt-In & Statutory Setup (€4,000)", est: 4000, actual: 0, status: "PHASE 2" },
+      { name: "Galway Co. Co. Section 48 Levy (€4,500)", est: 4500, actual: 0, status: "PHASE 2" },
+      { name: "Bulk Excavation & Basement Pit Dig", est: 6500, actual: 0, status: "PHASE 3" },
+      { name: "Site Sub-Base Prep & Crushed Stone", est: 8500, actual: 0, status: "PHASE 3" },
+      { name: "Foundation Rebar Steel & Concrete Raft Pour", est: 18000, actual: 0, status: "PHASE 3" },
+      { name: "Basement Retaining Walls & Tanking", est: 16000, actual: 0, status: "PHASE 3" },
+      { name: "Garage Pod Construction & Temp Workspace", est: 18500, actual: 0, status: "PHASE 4" },
+      { name: "Main House RC Column Skeleton Grid", est: 22000, actual: 0, status: "PHASE 4" },
+      { name: "Upper Floor Decks & Atrium Void Decking", est: 17500, actual: 0, status: "PHASE 4" },
+      { name: "Roof Framing, Trusses & Enclosure", est: 32000, actual: 0, status: "PHASE 4" },
+      { name: "External Wall Infill, Glazing & Watertight", est: 42000, actual: 0, status: "PHASE 4" },
+      { name: "Underground Trenching & First-Fix MEP", est: 48000, actual: 0, status: "PHASE 5" },
+      { name: "Final Statutory BCMS Sign-Off & Activation", est: 2500, actual: 0, status: "PHASE 5" }
+    ];
+
     window.onload = function() {
-      // Load saved images from local storage
-      const keys = ['plan_ground', 'plan_first', 'plan_basement', 'plan_garage', 'plan_sitemap'];
-      const imgIds = ['img-ground', 'img-first', 'img-basement', 'img-garage', 'img-sitemap'];
-      
-      keys.forEach((key, index) => {
-        const savedImg = localStorage.getItem(key);
-        if (savedImg) {
-          document.getElementById(imgIds[index]).src = savedImg;
-        }
-      });
+      listenToCloudData();
     };
 
-    function showTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab-' + tabName).style.display = 'block';
-      event.target.classList.add('active');
+    function listenToCloudData() {
+      // Real-time listener for package ledger
+      db.collection("build_app").doc("master_data").onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          renderPackages(data.packages || []);
+          renderImages(data.images || {});
+        } else {
+          // Initialize DB with defaults
+          db.collection("build_app").doc("master_data").set({ packages: defaultPackages, images: {} });
+        }
+      });
+    }
+
+    function saveToCloud() {
+      document.getElementById('sync-status').textContent = '⏳ Saving...';
+      const rows = document.querySelectorAll('#pkg-tbody tr');
+      const updatedPackages = [];
+      rows.forEach(row => {
+        const name = row.cells[2].textContent;
+        const est = Number(row.cells[3].textContent.replace(/,/g, '')) || 0;
+        const actual = Number(row.querySelector('.actual-input').value) || 0;
+        const status = row.querySelector('.status-select').value;
+        updatedPackages.push({ name, est, actual, status });
+      });
+
+      db.collection("build_app").doc("master_data").update({ packages: updatedPackages }).then(() => {
+        document.getElementById('sync-status').textContent = '☁️ Cloud Synced';
+      });
+    }
+
+    function renderPackages(packages) {
+      const tbody = document.getElementById("pkg-tbody");
+      tbody.innerHTML = "";
+      packages.forEach((pkg, index) => {
+        const row = document.createElement('tr');
+        const paidClass = pkg.status === 'PAID' ? 'status-paid' : (pkg.status === 'PENDING' ? 'status-pending' : 'status-phase');
+        row.innerHTML = `
+          <td class="action-cols">
+            <button class="btn-move" onclick="moveRow(this, 'up')">▲</button>
+            <button class="btn-move" onclick="moveRow(this, 'down')">▼</button>
+          </td>
+          <td class="pkg-num">${index + 1}</td>
+          <td>${pkg.name}</td>
+          <td>${pkg.est.toLocaleString()}</td>
+          <td><input type="number" class="actual-input" value="${pkg.actual}" onchange="saveToCloud()" oninput="calculateTotals()"></td>
+          <td>
+            <select class="status-select ${paidClass}" onchange="updateStatusColor(this); saveToCloud();">
+              <option value="PAID" ${pkg.status === 'PAID' ? 'selected' : ''}>PAID</option>
+              <option value="PENDING" ${pkg.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+              <option value="PHASE 2" ${pkg.status === 'PHASE 2' ? 'selected' : ''}>PHASE 2</option>
+              <option value="PHASE 3" ${pkg.status === 'PHASE 3' ? 'selected' : ''}>PHASE 3</option>
+              <option value="PHASE 4" ${pkg.status === 'PHASE 4' ? 'selected' : ''}>PHASE 4</option>
+              <option value="PHASE 5" ${pkg.status === 'PHASE 5' ? 'selected' : ''}>PHASE 5</option>
+            </select>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      calculateTotals();
+    }
+
+    function renderImages(images) {
+      const imgMap = { plan_ground: 'img-ground', plan_first: 'img-first', plan_basement: 'img-basement', plan_garage: 'img-garage', plan_sitemap: 'img-sitemap' };
+      for (const [key, val] of Object.entries(images)) {
+        if (imgMap[key] && document.getElementById(imgMap[key])) {
+          document.getElementById(imgMap[key]).src = val;
+        }
+      }
+    }
+
+    function uploadImage(input, targetImgId, storageKey) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Img = e.target.result;
+          document.getElementById(targetImgId).src = base64Img;
+          db.collection("build_app").doc("master_data").set({
+            images: { [storageKey]: base64Img }
+          }, { merge: true });
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function calculateTotals() {
       const inputs = document.querySelectorAll('.actual-input');
       let totalPaid = 0;
-      inputs.forEach(input => {
-        totalPaid += Number(input.value) || 0;
-      });
+      inputs.forEach(input => { totalPaid += Number(input.value) || 0; });
       const targetTotal = 247600;
-      const balance = targetTotal - totalPaid;
-
       document.getElementById('totalPaidDisplay').textContent = '€' + totalPaid.toLocaleString();
-      document.getElementById('balanceDisplay').textContent = '€' + balance.toLocaleString();
+      document.getElementById('balanceDisplay').textContent = '€' + (targetTotal - totalPaid).toLocaleString();
     }
 
     function updateStatusColor(select) {
       select.classList.remove('status-paid', 'status-pending', 'status-phase');
-      const val = select.value;
-      if (val === 'PAID') select.classList.add('status-paid');
-      else if (val === 'PENDING') select.classList.add('status-pending');
+      if (select.value === 'PAID') select.classList.add('status-paid');
+      else if (select.value === 'PENDING') select.classList.add('status-pending');
       else select.classList.add('status-phase');
     }
 
     function moveRow(button, direction) {
       const row = button.closest('tr');
       const tbody = row.parentNode;
-      
-      if (direction === 'up' && row.previousElementSibling) {
-        tbody.insertBefore(row, row.previousElementSibling);
-      } else if (direction === 'down' && row.nextElementSibling) {
-        tbody.insertBefore(row.nextElementSibling, row);
-      }
-      
+      if (direction === 'up' && row.previousElementSibling) tbody.insertBefore(row, row.previousElementSibling);
+      else if (direction === 'down' && row.nextElementSibling) tbody.insertBefore(row.nextElementSibling, row);
       updatePackageNumbers();
+      saveToCloud();
     }
 
     function updatePackageNumbers() {
-      const rows = document.querySelectorAll('#pkg-tbody tr');
-      rows.forEach((row, index) => {
-        row.querySelector('.pkg-num').textContent = index + 1;
-      });
+      document.querySelectorAll('#pkg-tbody tr').forEach((row, i) => row.querySelector('.pkg-num').textContent = i + 1);
     }
 
     function addNewPackage() {
@@ -407,7 +480,6 @@
       
       const tbody = document.getElementById("pkg-tbody");
       const newRow = document.createElement('tr');
-
       newRow.innerHTML = `
         <td class="action-cols">
           <button class="btn-move" onclick="moveRow(this, 'up')">▲</button>
@@ -416,9 +488,9 @@
         <td class="pkg-num">0</td>
         <td>${name}</td>
         <td>${Number(cost).toLocaleString()}</td>
-        <td><input type="number" class="actual-input" value="0" oninput="calculateTotals()"></td>
+        <td><input type="number" class="actual-input" value="0" onchange="saveToCloud()" oninput="calculateTotals()"></td>
         <td>
-          <select class="status-select status-pending" onchange="updateStatusColor(this)">
+          <select class="status-select status-pending" onchange="updateStatusColor(this); saveToCloud();">
             <option value="PAID">PAID</option>
             <option value="PENDING" selected>PENDING</option>
             <option value="PHASE 2">PHASE 2</option>
@@ -428,49 +500,18 @@
           </select>
         </td>
       `;
-
       tbody.appendChild(newRow);
       updatePackageNumbers();
+      saveToCloud();
     }
 
-    /* Direct Image File Reader & Storage */
-    function uploadImage(input, targetImgId, storageKey) {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const base64Img = e.target.result;
-          document.getElementById(targetImgId).src = base64Img;
-          try {
-            localStorage.setItem(storageKey, base64Img);
-          } catch (err) {
-            console.warn("Storage quota exceeded, showing image in current session.");
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).style.display = 'block';
+      event.target.classList.add('active');
     }
 
-    function addNewCategory() {
-      const title = prompt("Enter Category Name (e.g. Electrical Layout, Roof Details):");
-      if (!title) return;
-      const id = 'img-' + Date.now();
-      const storageKey = 'plan_' + Date.now();
-
-      const grid = document.getElementById("plan-grid");
-      const card = document.createElement("div");
-      card.className = "plan-card";
-      card.innerHTML = `
-        <img id="${id}" src="https://via.placeholder.com/300x200/1f293d/ffffff?text=No+Image+Uploaded" alt="${title}" onclick="openModal(this.src, '${title}')">
-        <div class="plan-title">${title}</div>
-        <label class="btn-upload">📷 Upload Image
-          <input type="file" class="file-input" accept="image/*" onchange="uploadImage(this, '${id}', '${storageKey}')">
-        </label>
-      `;
-      grid.appendChild(card);
-    }
-
-    /* Modal Functions */
     function openModal(imgSrc, title) {
       document.getElementById('modalImage').src = imgSrc;
       document.getElementById('modalTitle').textContent = title;
